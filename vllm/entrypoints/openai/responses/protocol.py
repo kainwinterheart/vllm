@@ -314,7 +314,7 @@ class ResponsesRequest(OpenAIBaseModel):
         )
 
     _DEFAULT_SAMPLING_PARAMS = {
-        "temperature": 1.0,
+        "temperature": 0.6,
         "top_p": 1.0,
         "top_k": 0,
     }
@@ -330,21 +330,17 @@ class ResponsesRequest(OpenAIBaseModel):
             max_tokens = min(self.max_output_tokens, default_max_tokens)
 
         default_sampling_params = default_sampling_params or {}
-        if (temperature := self.temperature) is None:
-            temperature = default_sampling_params.get(
-                "temperature", self._DEFAULT_SAMPLING_PARAMS["temperature"]
-            )
-        if (top_p := self.top_p) is None:
-            top_p = default_sampling_params.get(
-                "top_p", self._DEFAULT_SAMPLING_PARAMS["top_p"]
-            )
-        if (top_k := self.top_k) is None:
-            top_k = default_sampling_params.get(
-                "top_k", self._DEFAULT_SAMPLING_PARAMS["top_k"]
-            )
+        temperature = default_sampling_params.get(
+            "temperature", self._DEFAULT_SAMPLING_PARAMS["temperature"]
+        )
+        top_p = default_sampling_params.get(
+            "top_p", self._DEFAULT_SAMPLING_PARAMS["top_p"]
+        )
+        top_k = default_sampling_params.get(
+            "top_k", self._DEFAULT_SAMPLING_PARAMS["top_k"]
+        )
 
-        if (repetition_penalty := self.repetition_penalty) is None:
-            repetition_penalty = default_sampling_params.get("repetition_penalty", 1.0)
+        repetition_penalty = default_sampling_params.get("repetition_penalty", 1.0)
 
         if (presence_penalty := self.presence_penalty) is None:
             presence_penalty = default_sampling_params.get("presence_penalty", 0.0)
@@ -476,21 +472,70 @@ class ResponsesRequest(OpenAIBaseModel):
 
         processed_input = []
         for item in input_data:
-            if isinstance(item, dict) and item.get("type") == "function_call":
+            normalized_item = cls._normalize_openresponses_input_item(item)
+            if (
+                isinstance(normalized_item, dict)
+                and normalized_item.get("type") == "function_call"
+            ):
                 try:
-                    processed_input.append(ResponseFunctionToolCall(**item))
+                    processed_input.append(ResponseFunctionToolCall(**normalized_item))
                 except ValidationError:
                     # Let Pydantic handle validation for malformed function calls
                     logger.debug(
                         "Failed to parse function_call to ResponseFunctionToolCall, "
                         "leaving for Pydantic validation"
                     )
-                    processed_input.append(item)
+                    processed_input.append(normalized_item)
             else:
-                processed_input.append(item)
+                processed_input.append(normalized_item)
 
         data["input"] = processed_input
         return data
+
+    @staticmethod
+    def _normalize_openresponses_input_item(item: Any) -> Any:
+        """Normalize input items to bridge OpenResponses schema and openai-python.
+
+        The OpenResponses specification treats several fields as optional
+        (``id``, ``status`` on assistant/reasoning items; ``annotations``
+        on output_text content) that the openai-python SDK marks as
+        required.  Fill sensible defaults so payloads conforming to the
+        OpenResponses spec pass SDK validation.
+        """
+        if not isinstance(item, dict):
+            return item
+
+        item_type = item.get("type", "message")
+        should_fill = item_type == "reasoning" or (
+            item_type == "message" and item.get("role") == "assistant"
+        )
+        if not should_fill:
+            return item
+
+        normalized_item = item.copy()
+        if normalized_item.get("id") in (None, ""):
+            prefix = "rs" if item_type == "reasoning" else "msg"
+            normalized_item["id"] = f"{prefix}_{random_uuid()}"
+        if normalized_item.get("status") in (None, ""):
+            normalized_item["status"] = "completed"
+        if item_type == "reasoning" and normalized_item.get("summary") is None:
+            normalized_item["summary"] = []
+
+        # OpenResponses schema treats ``annotations`` as optional for
+        # output_text content, but the openai SDK requires it.
+        if item_type == "message" and isinstance(normalized_item.get("content"), list):
+            normalized_content = []
+            for content_item in normalized_item["content"]:
+                if (
+                    isinstance(content_item, dict)
+                    and content_item.get("type") == "output_text"
+                    and "annotations" not in content_item
+                ):
+                    content_item = {**content_item, "annotations": []}
+                normalized_content.append(content_item)
+            normalized_item["content"] = normalized_content
+
+        return normalized_item
 
     @model_validator(mode="before")
     @classmethod
