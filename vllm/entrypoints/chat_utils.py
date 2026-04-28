@@ -4,6 +4,7 @@
 import asyncio
 import json
 import warnings
+import logging
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
 from collections.abc import Awaitable, Callable, Iterable
@@ -1569,13 +1570,44 @@ def _postprocess_messages(messages: list[ConversationMessage]) -> None:
                 message.pop("tool_calls", None)
                 continue
 
+            extra = []
             for item in tool_calls:
                 # if arguments is None or empty string, set to {}
                 if content := item["function"].get("arguments"):
                     if not isinstance(content, (dict, list)):
-                        item["function"]["arguments"] = json.loads(content)
+                        try:
+                            json_str = extract_json(content)
+                            first = True
+                            dec = json.JSONDecoder(strict=False)
+                            pos = 0
+                            while not pos == len(str(json_str)):
+                                j, json_len = dec.raw_decode(str(json_str)[pos:])
+                                pos += json_len
+                                if first:
+                                    first = False
+                                    item["function"]["arguments"] = j
+                                else:
+                                    copy = item["function"].copy()
+                                    copy["arguments"] = j
+                                    extra.append(copy)
+                        except:
+                            if first:
+                                item["function"]["arguments"] = {}
+                            try:
+                                logging.exception(f"Failed to parse function arguments: {json_str}")
+                            except:
+                                logging.exception("Exception handler crashed")
                 else:
                     item["function"]["arguments"] = {}
+            tool_calls.extend(extra)
+
+
+def extract_json(text: str):
+    start = text.find("{")
+    end = text.rfind("}") + 1
+    if start != -1 and end != -1:
+        return text[start:end]
+    raise ValueError("Text does not contain JSON object")
 
 
 def parse_chat_messages(
