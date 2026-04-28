@@ -437,7 +437,7 @@ class OpenAIServingResponses(OpenAIServing):
             sampling_params = request.to_sampling_params(
                 default_max_tokens, self.default_sampling_params
             )
-            #sampling_params.thinking_token_budget = 128
+            sampling_params.thinking_token_budget = 2048
             sampling_params.temperature = 1
             sampling_params.top_p = 0.95
             sampling_params.top_k = 20
