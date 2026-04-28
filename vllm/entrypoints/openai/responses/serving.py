@@ -689,7 +689,7 @@ class OpenAIServingResponses(OpenAIServing):
             context.append_tool_output(tool_output)
 
             # TODO: uncomment this and enable tool output streaming
-            # yield context
+            yield context
 
             # Create inputs for the next turn.
             # Render the next prompt token ids and update sampling_params.
