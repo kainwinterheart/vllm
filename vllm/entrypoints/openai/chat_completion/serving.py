@@ -61,6 +61,7 @@ from vllm.entrypoints.openai.parser.harmony_utils import (
     get_streamable_parser_for_assistant,
     parse_chat_output,
 )
+from vllm.entrypoints.openai.sampling_defaults import apply_sampling_defaults
 from vllm.entrypoints.openai.utils import maybe_filter_parallel_tool_calls
 from vllm.entrypoints.utils import get_max_tokens, should_include_usage
 from vllm.inputs import EngineInput
@@ -302,6 +303,9 @@ class OpenAIServingChat(OpenAIServing):
                     self.default_sampling_params,
                 )
 
+
+            if isinstance(sampling_params, SamplingParams):
+                apply_sampling_defaults(sampling_params)
             self._log_inputs(
                 sub_request_id,
                 engine_input,
