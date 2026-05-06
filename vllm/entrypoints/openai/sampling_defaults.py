@@ -13,7 +13,7 @@ from vllm.sampling_params import SamplingParams
 # Override values
 # ---------------------------------------------------------------------------
 
-DEFAULT_THINKING_TOKEN_BUDGET = 2048
+DEFAULT_THINKING_TOKEN_BUDGET = 8192
 DEFAULT_TEMPERATURE = 1
 DEFAULT_TOP_P = 1.0
 DEFAULT_TOP_K = 25
