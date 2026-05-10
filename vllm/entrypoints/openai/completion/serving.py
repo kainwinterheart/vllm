@@ -33,6 +33,7 @@ from vllm.entrypoints.openai.engine.serving import (
 from vllm.entrypoints.openai.models.serving import OpenAIServingModels
 from vllm.entrypoints.utils import get_max_tokens, should_include_usage
 from vllm.exceptions import VLLMValidationError
+from vllm.entrypoints.openai.sampling_defaults import apply_sampling_defaults
 from vllm.inputs import EngineInput
 from vllm.logger import init_logger
 from vllm.logprobs import Logprob
@@ -165,6 +166,9 @@ class OpenAIServingCompletion(OpenAIServing):
                 )
 
             request_id_item = f"{request_id}-{i}"
+
+            if isinstance(sampling_params, SamplingParams):
+                apply_sampling_defaults(sampling_params)
 
             self._log_inputs(
                 request_id_item,

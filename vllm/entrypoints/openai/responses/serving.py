@@ -60,6 +60,7 @@ from vllm.entrypoints.openai.engine.serving import (
     OpenAIServing,
 )
 from vllm.entrypoints.openai.models.serving import OpenAIServingModels
+from vllm.entrypoints.openai.sampling_defaults import apply_sampling_defaults
 from vllm.entrypoints.openai.parser.harmony_utils import (
     get_developer_message,
     get_stop_tokens_for_assistant_actions,
@@ -437,6 +438,7 @@ class OpenAIServingResponses(OpenAIServing):
             sampling_params = request.to_sampling_params(
                 default_max_tokens, self.default_sampling_params
             )
+            apply_sampling_defaults(sampling_params)
 
             trace_headers = (
                 None
