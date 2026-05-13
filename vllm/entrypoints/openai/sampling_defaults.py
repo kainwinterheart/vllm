@@ -31,3 +31,5 @@ def apply_sampling_defaults(params: SamplingParams) -> None:
     params.min_p = DEFAULT_MIN_P
     params.repetition_penalty = DEFAULT_REPETITION_PENALTY
     params.presence_penalty = DEFAULT_PRESENCE_PENALTY
+    if params.max_tokens == 64000:
+        params.max_tokens = 128000
