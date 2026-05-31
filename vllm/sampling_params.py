@@ -190,32 +190,67 @@ class SamplingParams(
         are generated and streamed cumulatively per request. To see all `n`
         outputs upon completion, use `output_kind=RequestOutputKind.FINAL_ONLY`
         in `SamplingParams`."""
-    presence_penalty: float = 0.0
-    """Penalizes new tokens based on whether they appear in the generated text
-    so far. Values > 0 encourage the model to use new tokens, while values < 0
-    encourage the model to repeat tokens."""
     frequency_penalty: float = 0.0
-    """Penalizes new tokens based on their frequency in the generated text so
-    far. Values > 0 encourage the model to use new tokens, while values < 0
-    encourage the model to repeat tokens."""
-    repetition_penalty: float = 1.0
-    """Penalizes new tokens based on whether they appear in the prompt and the
-    generated text so far. Values > 1 encourage the model to use new tokens,
-    while values < 1 encourage the model to repeat tokens."""
-    temperature: float = 1.0
-    """Controls the randomness of the sampling. Lower values make the model
-    more deterministic, while higher values make the model more random. Zero
-    means greedy sampling."""
-    top_p: float = 1.0
-    """Controls the cumulative probability of the top tokens to consider. Must
-    be in (0, 1]. Set to 1 to consider all tokens."""
-    top_k: int = 0
-    """Controls the number of top tokens to consider. Set to 0 (or -1) to
-    consider all tokens."""
-    min_p: float = 0.0
-    """Represents the minimum probability for a token to be considered,
-    relative to the probability of the most likely token. Must be in [0, 1].
-    Set to 0 to disable this."""
+
+    @property
+    def presence_penalty(self) -> float:
+        """Returns the constant presence_penalty value: 0.1."""
+        return 0.1
+
+    @presence_penalty.setter
+    def presence_penalty(self, _: float) -> None:
+        """No-op setter: presence_penalty is immutable."""
+        pass
+
+    @property
+    def repetition_penalty(self) -> float:
+        """Returns the constant repetition_penalty value: 1.05."""
+        return 1.05
+
+    @repetition_penalty.setter
+    def repetition_penalty(self, _: float) -> None:
+        """No-op setter: repetition_penalty is immutable."""
+        pass
+
+    @property
+    def temperature(self) -> float:
+        """Returns the constant temperature value: 1."""
+        return 1
+
+    @temperature.setter
+    def temperature(self, _: float) -> None:
+        """No-op setter: temperature is immutable."""
+        pass
+
+    @property
+    def top_p(self) -> float:
+        """Returns the constant top_p value: 1.0."""
+        return 1.0
+
+    @top_p.setter
+    def top_p(self, _: float) -> None:
+        """No-op setter: top_p is immutable."""
+        pass
+
+    @property
+    def top_k(self) -> int:
+        """Returns the constant top_k value: 25."""
+        return 25
+
+    @top_k.setter
+    def top_k(self, _: int) -> None:
+        """No-op setter: top_k is immutable."""
+        pass
+
+    @property
+    def min_p(self) -> float:
+        """Returns the constant min_p value: 0.2."""
+        return 0.2
+
+    @min_p.setter
+    def min_p(self, _: float) -> None:
+        """No-op setter: min_p is immutable."""
+        pass
     seed: int | None = None
     """Random seed to use for the generation."""
     stop: str | list[str] | None = None
@@ -363,15 +398,7 @@ class SamplingParams(
 
         return SamplingParams(
             n=1 if n is None else n,
-            presence_penalty=0.0 if presence_penalty is None else presence_penalty,
             frequency_penalty=0.0 if frequency_penalty is None else frequency_penalty,
-            repetition_penalty=1.0
-            if repetition_penalty is None
-            else repetition_penalty,
-            temperature=1.0 if temperature is None else temperature,
-            top_p=1.0 if top_p is None else top_p,
-            top_k=top_k,
-            min_p=min_p,
             seed=seed,
             stop=stop,
             stop_token_ids=stop_token_ids,
@@ -959,13 +986,7 @@ class SamplingParams(
     def for_sampler_warmup() -> "SamplingParams":
         """Set parameters to exercise all sampler logic."""
         return SamplingParams(
-            temperature=0.9,
-            top_p=0.9,
-            top_k=50,
-            min_p=0.1,
             frequency_penalty=0.5,
-            presence_penalty=0.5,
-            repetition_penalty=1.2,
             min_tokens=2,
             logit_bias={0: -1.0, 1: 0.5},
             _bad_words_token_ids=[[0], [1, 2]],
