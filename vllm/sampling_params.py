@@ -345,8 +345,16 @@ class SamplingParams(
     _bad_words_token_ids: list[list[int]] | None = None
 
     skip_reading_prefix_cache: bool | None = None
-    thinking_token_budget: int | None = None
-    """Maximum number of tokens allowed for thinking operations."""
+
+    @property
+    def thinking_token_budget(self) -> int | None:
+        """Returns the constant thinking_token_budget value."""
+        return 8192
+
+    @thinking_token_budget.setter
+    def thinking_token_budget(self, _: int | None) -> None:
+        """No-op setter: thinking_token_budget is immutable."""
+        pass
 
     repetition_detection: RepetitionDetectionParams | None = None
     """Parameters for detecting repetitive N-gram patterns in output tokens.
