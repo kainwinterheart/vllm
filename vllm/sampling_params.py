@@ -411,7 +411,6 @@ class SamplingParams(
             stop=stop,
             stop_token_ids=stop_token_ids,
             bad_words=bad_words,
-            thinking_token_budget=thinking_token_budget,
             include_stop_str_in_output=include_stop_str_in_output,
             ignore_eos=ignore_eos,
             max_tokens=max_tokens,
