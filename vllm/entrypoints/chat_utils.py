@@ -3,6 +3,7 @@
 
 import asyncio
 import json
+import sys
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
 from collections.abc import Awaitable, Callable, Iterable
@@ -1838,9 +1839,13 @@ def _postprocess_messages(messages: list[ConversationMessage]) -> None:
                 if content := function.get("arguments"):
                     if not isinstance(content, (dict, list)):
                         try:
-                            function["arguments"] = json.loads(content)
-                        except:
-                            function["arguments"] = json.loads(content + "}")
+                            try:
+                                function["arguments"] = json.loads(content)
+                            except:
+                                function["arguments"] = json.loads(content + "}")
+                        except Exception as e:
+                            logger.exception(f"> {content}\n")
+                            function["arguments"] = {}
                 else:
                     function["arguments"] = {}
 
