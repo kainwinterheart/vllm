@@ -315,7 +315,13 @@ class SamplingParams(
     top_k: int = 0
     """Controls the number of top tokens to consider. Set to 0 (or -1) to
     consider all tokens."""
-    min_p: float = 0.0
+    #min_p: float = 0.0
+    @property
+    def min_p(self) -> float:
+        return 0.2
+    @min_p.setter
+    def min_p(self, _) -> float:
+        return 0.2
     """Represents the minimum probability for a token to be considered,
     relative to the probability of the most likely token. Must be in [0, 1].
     Set to 0 to disable this."""
@@ -523,7 +529,7 @@ class SamplingParams(
             watermarking=watermarking,
             top_p=1.0 if top_p is None else top_p,
             top_k=top_k,
-            min_p=min_p,
+            #min_p=min_p,
             seed=seed,
             stop=stop,
             stop_token_ids=stop_token_ids,
@@ -1477,7 +1483,7 @@ class SamplingParams(
             temperature=0.9,
             top_p=0.9,
             top_k=50,
-            min_p=0.1,
+            #min_p=0.1,
             frequency_penalty=0.5,
             presence_penalty=0.5,
             repetition_penalty=1.2,
